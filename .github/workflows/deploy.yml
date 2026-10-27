@@ -15,4 +15,5 @@ jobs:
       - name: Deploy to local Minikube
         shell: powershell
         run: |
-          .\deploy-local.ps1
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\deploy-local.ps1
+
