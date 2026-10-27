@@ -4,15 +4,24 @@ name: Local Minikube CD
 
 on:
   workflow_dispatch:
+  workflow_run:
+    workflows: ["CI/CD Pipeline"]
+    types:
+      - completed
+    branches:
+      - main
 
 jobs:
   deploy:
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
     runs-on: self-hosted
 
     steps:
-      - name: Checkout code
+      - name: Checkout deployed commit
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
-      - name: Deploy to local Minikube
+      - name: Deploy image to local Minikube
         shell: cmd
-        run: powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& { .\deploy-local.ps1; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE } }"
+        run: powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& { .\deploy-local.ps1 -ImageTag '${{ github.event.workflow_run.head_sha || github.sha }}' }"
